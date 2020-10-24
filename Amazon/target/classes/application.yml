@@ -1,0 +1,5 @@
+amazonProperties:
+  endpointUrl: https://s3.us-east-2.amazonaws.com
+  accessKey: AKIAQ3TH4FEKCKKP3XEM
+  secretKey: 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
+  bucketName: shkryl-bucket
