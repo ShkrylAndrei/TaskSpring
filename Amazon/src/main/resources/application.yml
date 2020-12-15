@@ -1,6 +1,0 @@
-amazonProperties:
-  accessKey: AKIAQ3TH4FEKF6M4EVJT
-  secretKey: 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
-  bucketName: proselyte
-server:
-  port: 8085
