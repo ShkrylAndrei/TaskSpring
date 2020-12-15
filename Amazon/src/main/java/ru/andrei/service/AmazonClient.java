@@ -1,12 +1,13 @@
 package ru.andrei.service;
 
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,25 +20,27 @@ import java.util.Date;
 
 @Service
 public class AmazonClient {
-
     private AmazonS3 s3client;
 
-    @Value("${amazonProperties.endpointUrl}")
-    private String endpointUrl;
     @Value("${amazonProperties.bucketName}")
     private String bucketName;
     @Value("${amazonProperties.accessKey}")
     private String accessKey;
     @Value("${amazonProperties.secretKey}")
     private String secretKey;
+
     @PostConstruct
     private void initializeAmazon() {
         AWSCredentials credentials = new BasicAWSCredentials(this.accessKey, this.secretKey);
-        this.s3client = new AmazonS3Client(credentials);
+        this.s3client =  AmazonS3ClientBuilder
+                .standard()
+                .withCredentials(new AWSStaticCredentialsProvider(credentials))
+                .withRegion(Regions.EU_NORTH_1)
+                .build();
     }
 
     private File convertMultiPartToFile(MultipartFile file) throws IOException {
-        File convFile = new File(file.getOriginalFilename());
+        File convFile = new File(file.getName());
         FileOutputStream fos = new FileOutputStream(convFile);
         fos.write(file.getBytes());
         fos.close();
@@ -48,19 +51,18 @@ public class AmazonClient {
         return new Date().getTime() + "-" + multiPart.getOriginalFilename().replace(" ", "_");
     }
 
-    private void uploadFileTos3bucket(String fileName, File file) {
-        s3client.putObject(new PutObjectRequest(bucketName, fileName, file)
-                .withCannedAcl(CannedAccessControlList.PublicRead));
-    }
 
     public String uploadFile(MultipartFile multipartFile) {
-
         String fileUrl = "";
         try {
             File file = convertMultiPartToFile(multipartFile);
-            String fileName = generateFileName(multipartFile);
-            fileUrl = endpointUrl + "/" + bucketName + "/" + fileName;
-            uploadFileTos3bucket(fileName, file);
+            String fileName = multipartFile.getOriginalFilename();
+            fileUrl = bucketName + "/" + fileName;
+            s3client.putObject(
+                    bucketName,
+                    fileName,
+                    file
+            );
             file.delete();
         } catch (Exception e) {
             e.printStackTrace();
@@ -73,8 +75,4 @@ public class AmazonClient {
         s3client.deleteObject(new DeleteObjectRequest(bucketName + "/", fileName));
         return "Successfully deleted";
     }
-
-
-
-
 }
