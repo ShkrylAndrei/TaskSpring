@@ -1,0 +1,5 @@
+https://medium.com/oril/uploading-files-to-aws-s3-bucket-using-spring-boot-483fcb6f8646
+
+https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/JavaDocumentAPICRUDExample.html
+
+https://medium.com/@nuozhoux/get-started-guide-spring-boot-crud-with-dynamodb-991e6341844c
